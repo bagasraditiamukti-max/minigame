@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dice Maze Game</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            background: #f5f5f5;
+        }
+
+        #game {
+            width: 500px;
+            height: 300px;
+            margin: auto;
+            position: relative;
+            background-color: #ffffff;
+            border: 5px solid #333;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .path {
+            position: absolute;
+            background: linear-gradient(90deg, #a8e6cf, #56c596);
+            border-radius: 5px;
+            z-index: 1;
+        }
+
+        #start {
+            position: absolute;
+            left: 0;
+            top: 120px;
+            width: 20px;
+            height: 60px;
+            background: #4dabf7;
+            z-index: 2;
+        }
+
+        #finish {
+            position: absolute;
+            right: 0;
+            top: 120px;
+            width: 20px;
+            height: 60px;
+            background: #51cf66;
+            z-index: 2;
+        }
+
+        #ball {
+            width: 15px;
+            height: 15px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 3;
+            box-shadow: 0 0 10px red;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #339af0;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1c7ed6;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Dice Maze Game</h2>
+<p>Lempar dadu lalu selesaikan rute!</p>
+
+<button onclick="lemparDadu()">Lempar Dadu</button>
+<h3 id="hasilDadu"></h3>
+
+<div id="game">
+    <div id="start"></div>
+    <div id="finish"></div>
+    <div id="ball"></div>
+</div>
+
+<script>
+const game = document.getElementById("game");
+const ball = document.getElementById("ball");
+
+let paths = [];
+let isPlaying = false;
+
+const maps = {
+
+    1: [
+        {x:0,y:120,w:200,h:70},
+        {x:200,y:100,w:80,h:100},
+        {x:280,y:100,w:140,h:60},
+        {x:420,y:120,w:80,h:60}
+    ],
+
+    2: [
+        {x:0,y:120,w:180,h:70},
+        {x:180,y:80,w:70,h:140},
+        {x:250,y:80,w:130,h:60},
+        {x:380,y:110,w:70,h:60},
+        {x:450,y:120,w:50,h:60}
+    ],
+
+    3: [
+        {x:0,y:130,w:180,h:60},
+        {x:180,y:90,w:60,h:130},
+        {x:240,y:90,w:120,h:50},
+        {x:360,y:110,w:60,h:50},
+        {x:420,y:120,w:80,h:50}
+    ],
+
+    4: [
+        {x:0,y:130,w:160,h:60},
+        {x:160,y:70,w:50,h:160},
+        {x:210,y:70,w:110,h:40},
+        {x:320,y:100,w:50,h:40},
+        {x:370,y:120,w:130,h:50}
+    ],
+
+    5: [
+        {x:0,y:130,w:150,h:50},
+        {x:150,y:90,w:50,h:140},
+        {x:200,y:90,w:90,h:40},
+        {x:290,y:110,w:40,h:40},
+        {x:330,y:120,w:170,h:50}
+    ],
+
+    6: [
+        {x:0,y:135,w:140,h:45},
+        {x:140,y:100,w:40,h:160},
+        {x:180,y:100,w:80,h:35},
+        {x:260,y:120,w:35,h:35},
+        {x:295,y:120,w:205,h:50}
+    ]
+};
+
+function lemparDadu() {
+    const angka = Math.floor(Math.random() * 6) + 1;
+    document.getElementById("hasilDadu").innerText = "Map: " + angka;
+    loadMap(angka);
+}
+
+function loadMap(nomor) {
+    game.style.display = "block";
+
+    document.querySelectorAll(".path").forEach(p => p.remove());
+    paths = maps[nomor];
+
+    paths.forEach(seg => {
+        const div = document.createElement("div");
+        div.className = "path";
+        div.style.left = seg.x + "px";
+        div.style.top = seg.y + "px";
+        div.style.width = seg.w + "px";
+        div.style.height = seg.h + "px";
+        game.appendChild(div);
+    });
+
+    ball.style.left = "10px";
+    ball.style.top = "140px";
+}
+
+game.addEventListener("mousedown", () => isPlaying = true);
+document.addEventListener("mouseup", () => isPlaying = false);
+
+game.addEventListener("mousemove", (e) => {
+    if (!isPlaying) return;
+
+    const rect = game.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+
+    ball.style.left = (x - 7) + "px";
+    ball.style.top = (y - 7) + "px";
+
+    cekTabrakan(x, y);
+});
+
+function diDalamPath(x, y) {
+    return paths.some(seg =>
+        x >= seg.x &&
+        x <= seg.x + seg.w &&
+        y >= seg.y &&
+        y <= seg.y + seg.h
+    );
+}
+
+function cekTabrakan(x, y) {
+    if (!diDalamPath(x, y)) {
+        alert("Kalah ❌");
+        resetGame();
+    }
+
+    if (x > 480 && y > 120 && y < 180) {
+        alert("Menang! 🎉");
+        resetGame();
+    }
+}
+
+const resetGame = () => {
+    game.style.display = "none";
+    document.getElementById("hasilDadu").innerText = "";
+};
+</script>
+
+</body>
+</html>
